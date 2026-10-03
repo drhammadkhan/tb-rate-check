@@ -190,6 +190,7 @@ fetch("data.json").then(r=>r.json()).then(d=>{
   });
   if(q.value) render();
 }).catch(()=>out.innerHTML='<p class="empty">Could not load data.</p>');
+q.addEventListener("focus",()=>{q.value="";lastShown=null;out.innerHTML=""});
 q.addEventListener("input",()=>{lastShown=null;render()});
 q.addEventListener("keydown",e=>{if(e.key==="Enter"){const b=out.querySelector(".sugg button");if(b)b.click();q.blur()}});
 </script>
