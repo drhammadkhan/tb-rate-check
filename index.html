@@ -36,8 +36,7 @@ a{color:inherit}
 <main>
   <h1>TB Rate Check</h1>
   <p class="sub">Is a country's estimated TB incidence above 40 per 100,000?</p>
-  <input id="q" list="countries" placeholder="Type a country, e.g. India" autocomplete="off" autofocus aria-label="Country">
-  <datalist id="countries"></datalist>
+  <input id="q" placeholder="Type a country, e.g. India" autocomplete="off" autocapitalize="words" enterkeyhint="search" aria-label="Country">
   <div id="out" aria-live="polite"></div>
   <footer>Data: <a href="https://worldhealthorg.shinyapps.io/tb_profiles/">WHO TB profiles</a> / WHO Global TB Programme estimates of new cases per 100,000 population per year. <span id="asof"></span></footer>
 </main>
@@ -77,7 +76,6 @@ function render(){
 }
 fetch("data.json").then(r=>r.json()).then(d=>{
   data=d; d.forEach(x=>byNorm[norm(x.country)]=x);
-  document.getElementById("countries").innerHTML=d.map(x=>`<option value="${x.country.replace(/"/g,"&quot;")}">`).join("");
   document.getElementById("asof").textContent="Latest year available: "+Math.max(...d.map(x=>x.year))+".";
   if(q.value) render();
 }).catch(()=>out.innerHTML='<div class="meta">Could not load data.</div>');
