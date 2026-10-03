@@ -5,81 +5,190 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>TB Rate Check</title>
 <meta name="description" content="Is a country's estimated TB incidence above 40 per 100,000? Based on WHO estimates.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Fraunces:ital,opsz,wght@0,9..144,300..800;1,9..144,300..800&display=swap" rel="stylesheet">
 <style>
-:root{--bg:#f7f7f5;--card:#fff;--fg:#1d1d1b;--mute:#6b6b66;--line:#e2e2dc;--yes:#b3261e;--yesbg:#fdecea;--no:#1b6e3c;--nobg:#e8f5ec;--warn:#8a5a00}
-@media(prefers-color-scheme:dark){:root{--bg:#161614;--card:#201f1d;--fg:#f0efe9;--mute:#9a9992;--line:#35342f;--yes:#ff9a92;--yesbg:#3a1f1d;--no:#8fd5a6;--nobg:#1b2e22;--warn:#e6b450}}
+:root{
+  --paper:#f3eee4; --paper2:#ebe4d6; --ink:#1b1814; --mute:#7a7266; --line:#d6cdbb;
+  --hot:#d63a1f; --hotbg:#f9ddd4; --cool:#1d5e57; --coolbg:#d9e8e2;
+  --serif:"Fraunces",Georgia,"Times New Roman",serif; --mono:"DM Mono",ui-monospace,Menlo,monospace;
+}
+@media(prefers-color-scheme:dark){:root{
+  --paper:#15130f; --paper2:#1d1a15; --ink:#f1ebdd; --mute:#9b9384; --line:#363126;
+  --hot:#ff7a5c; --hotbg:#3a1c14; --cool:#6fd0c2; --coolbg:#13302c;
+}}
 *{box-sizing:border-box}
-body{margin:0;background:var(--bg);color:var(--fg);font:16px/1.5 system-ui,sans-serif;display:flex;justify-content:center;padding:32px 16px}
-main{width:100%;max-width:520px}
-h1{font-size:1.6rem;margin:0 0 4px}
-p.sub{color:var(--mute);margin:0 0 20px}
-input{width:100%;font:inherit;padding:14px;border:1px solid var(--line);border-radius:10px;background:var(--card);color:var(--fg)}
-input:focus{outline:2px solid var(--fg);outline-offset:1px}
-#out{margin-top:20px}
-.card{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:20px}
-.verdict{display:inline-block;font-weight:700;padding:4px 12px;border-radius:999px;font-size:.95rem}
-.yes{background:var(--yesbg);color:var(--yes)}.no{background:var(--nobg);color:var(--no)}
-.rate{font-size:2.4rem;font-weight:700;margin:10px 0 0;line-height:1.1}
-.rate small{font-size:1rem;font-weight:400;color:var(--mute)}
-.meta{color:var(--mute);font-size:.9rem;margin-top:8px}
-.warn{color:var(--warn);font-size:.9rem;margin-top:10px}
-.bar{position:relative;height:8px;background:var(--line);border-radius:4px;margin:18px 0 6px}
-.bar i{position:absolute;top:0;bottom:0;border-radius:4px;background:var(--mute);opacity:.5}
-.bar b{position:absolute;top:-4px;width:3px;height:16px;background:var(--fg);border-radius:2px}
-.bar u{position:absolute;top:-8px;bottom:-8px;width:0;border-left:2px dashed var(--yes)}
-.sugg button{font:inherit;margin:4px 6px 0 0;padding:6px 12px;border:1px solid var(--line);background:var(--card);color:var(--fg);border-radius:999px;cursor:pointer}
-footer{margin-top:28px;color:var(--mute);font-size:.8rem}
-a{color:inherit}
+html{-webkit-text-size-adjust:100%}
+body{
+  margin:0; min-height:100vh; color:var(--ink); font:17px/1.55 var(--serif);
+  background:
+    radial-gradient(900px 500px at 85% -10%, color-mix(in srgb,var(--hot) 14%,transparent), transparent 60%),
+    radial-gradient(700px 500px at -10% 110%, color-mix(in srgb,var(--cool) 14%,transparent), transparent 60%),
+    var(--paper);
+  background-attachment:fixed;
+}
+body::before{ /* paper grain */
+  content:""; position:fixed; inset:0; pointer-events:none; opacity:.35; mix-blend-mode:multiply;
+  background-image:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='160' height='160'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='2' stitchTiles='stitch'/><feColorMatrix values='0 0 0 0 .4  0 0 0 0 .35  0 0 0 0 .3  0 0 0 .28 0'/></filter><rect width='100%' height='100%' filter='url(%23n)'/></svg>");
+}
+@media(prefers-color-scheme:dark){body::before{mix-blend-mode:screen;opacity:.12}}
+main{position:relative;max-width:640px;margin:0 auto;padding:44px 22px 40px}
+.kicker{font:500 .72rem/1 var(--mono);letter-spacing:.14em;text-transform:uppercase;color:var(--mute);display:flex;align-items:center;gap:10px}
+.kicker::before{content:"";width:28px;height:1px;background:var(--mute)}
+h1{font-weight:400;font-size:clamp(2rem,7.5vw,3.1rem);line-height:1.08;letter-spacing:-.02em;margin:18px 0 6px;font-variation-settings:"opsz" 144}
+h1 em{font-style:italic;font-weight:300}
+h1 b{font-weight:700;font-family:var(--mono);font-size:.8em;letter-spacing:-.04em;border-bottom:3px solid var(--hot)}
+.field{position:relative;margin-top:22px}
+#q{
+  width:100%;font:italic 300 clamp(1.7rem,6.5vw,2.4rem)/1.2 var(--serif);color:var(--ink);
+  background:transparent;border:0;border-bottom:2px solid var(--ink);border-radius:0;padding:10px 40px 10px 0;outline:none;
+  transition:border-color .2s;
+}
+#q::placeholder{color:var(--mute);opacity:.55}
+#q:focus{border-bottom-color:var(--hot)}
+.field svg{position:absolute;right:2px;top:50%;transform:translateY(-50%);width:22px;height:22px;stroke:var(--mute);fill:none;stroke-width:1.8;pointer-events:none}
+.chips{display:flex;flex-wrap:wrap;gap:8px;margin-top:16px;align-items:center}
+.chips span.l{font:500 .7rem var(--mono);letter-spacing:.12em;text-transform:uppercase;color:var(--mute);margin-right:4px}
+.chips button{
+  font:400 .85rem var(--mono);color:var(--ink);background:transparent;border:1px solid var(--line);border-radius:999px;
+  padding:7px 14px;cursor:pointer;transition:all .18s;
+}
+.chips button:hover,.chips button:focus-visible{background:var(--ink);color:var(--paper);border-color:var(--ink);transform:translateY(-1px);outline:none}
+#out{margin-top:28px;min-height:40px}
+.card{
+  position:relative;background:var(--paper2);border:1px solid var(--line);border-radius:4px;padding:26px 24px 22px;
+  box-shadow:0 1px 0 var(--line),0 18px 40px -22px rgba(40,25,10,.35);
+  animation:rise .5s cubic-bezier(.2,.8,.2,1) both;
+}
+.card::after{content:"";position:absolute;left:0;top:0;bottom:0;width:5px;background:var(--accent)}
+.card.yes{--accent:var(--hot)} .card.no{--accent:var(--cool)}
+.country{font:500 .75rem var(--mono);letter-spacing:.12em;text-transform:uppercase;color:var(--mute);margin:0 0 4px;animation:rise .5s .05s both}
+.stamp{
+  position:absolute;top:18px;right:18px;font:500 .72rem var(--mono);letter-spacing:.14em;text-transform:uppercase;
+  color:var(--accent);border:2px solid var(--accent);border-radius:3px;padding:6px 10px;transform:rotate(3deg);
+  animation:stamp .45s .25s cubic-bezier(.3,1.6,.5,1) both;
+}
+.big{display:flex;align-items:baseline;gap:10px;flex-wrap:wrap;margin:6px 0 2px;animation:rise .5s .1s both}
+.big .n{font:300 clamp(4rem,19vw,6.2rem)/1 var(--serif);letter-spacing:-.04em;font-variation-settings:"opsz" 144;color:var(--accent)}
+.big .u{font:400 .85rem var(--mono);color:var(--mute)}
+.verdict{font:italic 400 1.25rem/1.3 var(--serif);margin:4px 0 0;animation:rise .5s .15s both}
+.verdict strong{font-style:normal;font-weight:700;color:var(--accent)}
+.scale{margin:30px 4px 6px;animation:rise .5s .2s both}
+.track{position:relative;height:10px;border-radius:5px;background:var(--line)}
+.band{position:absolute;top:0;bottom:0;border-radius:5px;background:var(--accent);opacity:.28;transform-origin:left;animation:grow .7s .3s both}
+.dot{position:absolute;top:50%;width:18px;height:18px;margin:-9px 0 0 -9px;border-radius:50%;background:var(--accent);border:3px solid var(--paper2);box-shadow:0 0 0 1px var(--accent);animation:pop .5s .6s cubic-bezier(.3,1.6,.5,1) both}
+.thr{position:absolute;top:-14px;bottom:-14px;width:0;border-left:2px dashed var(--ink)}
+.thr i{position:absolute;top:-17px;left:0;transform:translateX(-50%);font:500 .68rem var(--mono);font-style:normal;letter-spacing:.08em;white-space:nowrap}
+.ticks{position:relative;height:18px;margin-top:10px}
+.ticks span{position:absolute;transform:translateX(-50%);font:400 .68rem var(--mono);color:var(--mute)}
+.ticks span:first-child{transform:none}.ticks span:last-child{transform:translateX(-100%)}
+.meta{margin-top:18px;padding-top:14px;border-top:1px dashed var(--line);display:flex;flex-wrap:wrap;gap:6px 22px;font:400 .78rem/1.4 var(--mono);color:var(--mute);animation:rise .5s .3s both}
+.meta b{color:var(--ink);font-weight:500}
+.warn{margin-top:14px;padding:10px 12px;background:var(--hotbg);border-left:3px solid var(--hot);font:400 .85rem/1.45 var(--serif);animation:rise .5s .35s both}
+.sugg{animation:rise .35s both}.sugg p{margin:0 0 4px;color:var(--mute);font-style:italic}
+.empty{color:var(--mute);font-style:italic}
+footer{margin-top:44px;padding-top:16px;border-top:1px solid var(--line);font:400 .72rem/1.6 var(--mono);color:var(--mute)}
+footer a{color:var(--ink);text-underline-offset:3px}
+@keyframes rise{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:none}}
+@keyframes grow{from{transform:scaleX(0)}to{transform:scaleX(1)}}
+@keyframes pop{from{opacity:0;transform:scale(0)}to{opacity:1;transform:scale(1)}}
+@keyframes stamp{from{opacity:0;transform:rotate(-8deg) scale(1.8)}to{opacity:1;transform:rotate(3deg) scale(1)}}
+@media(prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+@media(max-width:420px){.stamp{position:static;display:inline-block;margin-bottom:12px}}
 </style>
 </head>
 <body>
 <main>
-  <h1>TB Rate Check</h1>
-  <p class="sub">Is a country's estimated TB incidence above 40 per 100,000?</p>
-  <input id="q" placeholder="Type a country, e.g. India" autocomplete="off" autocapitalize="words" enterkeyhint="search" aria-label="Country">
+  <div class="kicker">WHO tuberculosis estimates <span id="yr"></span></div>
+  <h1>Is TB above <b>40</b> per 100,000 in&hellip;</h1>
+  <div class="field">
+    <input id="q" placeholder="type a country" autocomplete="off" autocapitalize="words" enterkeyhint="search" spellcheck="false" aria-label="Country">
+    <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="10.5" cy="10.5" r="6.5"/><path d="M15.5 15.5 21 21"/></svg>
+  </div>
+  <div class="chips" id="chips"><span class="l">Try</span></div>
   <div id="out" aria-live="polite"></div>
-  <footer>Data: <a href="https://worldhealthorg.shinyapps.io/tb_profiles/">WHO TB profiles</a> / WHO Global TB Programme estimates of new cases per 100,000 population per year. <span id="asof"></span></footer>
+  <footer>
+    Estimated new TB cases per 100,000 population per year. Source:
+    <a href="https://worldhealthorg.shinyapps.io/tb_profiles/">WHO TB profiles</a> / Global TB Programme. Updated weekly.
+    The 40 threshold is compared against the central estimate.
+  </footer>
 </main>
 <script>
 const THRESHOLD = 40;
 const ALIASES = {"uk":"United Kingdom of Great Britain and Northern Ireland","united kingdom":"United Kingdom of Great Britain and Northern Ireland","britain":"United Kingdom of Great Britain and Northern Ireland","great britain":"United Kingdom of Great Britain and Northern Ireland","england":"United Kingdom of Great Britain and Northern Ireland","scotland":"United Kingdom of Great Britain and Northern Ireland","wales":"United Kingdom of Great Britain and Northern Ireland","usa":"United States of America","us":"United States of America","america":"United States of America","united states":"United States of America","russia":"Russian Federation","iran":"Iran (Islamic Republic of)","south korea":"Republic of Korea","korea":"Republic of Korea","north korea":"Democratic People's Republic of Korea","vietnam":"Viet Nam","laos":"Lao People's Democratic Republic","syria":"Syrian Arab Republic","tanzania":"United Republic of Tanzania","bolivia":"Bolivia (Plurinational State of)","venezuela":"Venezuela (Bolivarian Republic of)","moldova":"Republic of Moldova","turkey":"Türkiye","turkiye":"Türkiye","drc":"Democratic Republic of the Congo","dr congo":"Democratic Republic of the Congo","ivory coast":"Côte d'Ivoire","cote d'ivoire":"Côte d'Ivoire","czech republic":"Czechia","uae":"United Arab Emirates","burma":"Myanmar","swaziland":"Eswatini","cape verde":"Cabo Verde","east timor":"Timor-Leste","palestine":"occupied Palestinian territory, including east Jerusalem","macedonia":"North Macedonia"};
 const norm = s => s.toLowerCase().normalize("NFD").replace(/[̀-ͯ]/g,"").replace(/[^a-z0-9' ]+/g," ").replace(/\s+/g," ").trim();
 const lev = (a,b)=>{const m=[...Array(a.length+1)].map((_,i)=>[i,...Array(b.length).fill(0)]);for(let j=1;j<=b.length;j++)m[0][j]=j;for(let i=1;i<=a.length;i++)for(let j=1;j<=b.length;j++)m[i][j]=Math.min(m[i-1][j]+1,m[i][j-1]+1,m[i-1][j-1]+(a[i-1]===b[j-1]?0:1));return m[a.length][b.length]};
+const esc = s => s.replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
 let data=[], byNorm={};
 const q=document.getElementById("q"), out=document.getElementById("out");
 
 function find(text){
   const n=norm(text); if(!n) return {};
   if(byNorm[n]) return {hit:byNorm[n]};
-  const al=ALIASES[n]; if(al&&data.find(d=>d.country===al)) return {hit:data.find(d=>d.country===al)};
+  const al=ALIASES[n]; if(al&&byNorm[norm(al)]) return {hit:byNorm[norm(al)]};
   const subs=data.filter(d=>norm(d.country).includes(n));
   if(subs.length===1) return {hit:subs[0]};
   const scored=data.map(d=>({d,s:lev(n,norm(d.country))/Math.max(n.length,3)})).sort((a,b)=>a.s-b.s);
   const close=scored.filter(x=>x.s<.45).slice(0,3).map(x=>x.d);
   if(close.length===1&&scored[0].s<.2) return {hit:close[0]};
-  return {sugg:subs.length?subs.slice(0,5):close};
+  return {sugg:subs.length?subs.slice(0,6):close};
 }
+
+// log scale 1 .. 1000
+const LO=0, HI=3, pos=v=>Math.min(100,Math.max(0,(Math.log10(Math.max(v,1))-LO)/(HI-LO)*100));
+const short = c => c.length>34 ? c.split(/[,(]/)[0] : c;
+
+function countUp(el,to){
+  if(matchMedia("(prefers-reduced-motion:reduce)").matches){el.textContent=to;return}
+  const dec=String(to).includes(".")?1:0, t0=performance.now(), dur=700;
+  (function f(t){const p=Math.min(1,(t-t0)/dur),e=1-Math.pow(1-p,3);el.textContent=(to*e).toFixed(dec);if(p<1)requestAnimationFrame(f);else el.textContent=to})(t0);
+}
+
+let lastShown=null;
 function render(){
   const {hit,sugg}=find(q.value);
   if(hit){
-    const yes=hit.rate>THRESHOLD, max=Math.max(hit.hi,THRESHOLD)*1.15, pct=v=>(v/max*100)+"%";
-    out.innerHTML=`<div class="card"><span class="verdict ${yes?"yes":"no"}">${yes?"YES - above 40":"NO - not above 40"}</span>
-      <div class="rate">${hit.rate} <small>per 100,000</small></div>
-      <div class="bar"><i style="left:${pct(hit.lo)};width:${(hit.hi-hit.lo)/max*100}%"></i><b style="left:calc(${pct(hit.rate)} - 1px)"></b><u style="left:${pct(THRESHOLD)}"></u></div>
-      <div class="meta">${hit.country}, ${hit.year}. Uncertainty range ${hit.lo}-${hit.hi}. Dashed line = 40.</div>
-      ${hit.lo<=THRESHOLD&&THRESHOLD<=hit.hi?'<div class="warn">The uncertainty range spans 40, so this country is close to the threshold.</div>':""}</div>`;
+    if(lastShown===hit.country) return; lastShown=hit.country;
+    const yes=hit.rate>THRESHOLD, ratio=hit.rate/THRESHOLD;
+    const mult = yes ? `<strong>${ratio>=10?Math.round(ratio):ratio.toFixed(1)}&times;</strong> the threshold` : `<strong>${(THRESHOLD/hit.rate>=10?Math.round(THRESHOLD/hit.rate):(THRESHOLD/hit.rate).toFixed(1))}&times;</strong> below the threshold`;
+    out.innerHTML=`<div class="card ${yes?"yes":"no"}">
+      <div class="stamp">${yes?"Above 40":"Not above 40"}</div>
+      <p class="country">${esc(hit.country)} &middot; ${hit.year}</p>
+      <div class="big"><span class="n">0</span><span class="u">per 100,000</span></div>
+      <p class="verdict">${yes?"Yes":"No"} &mdash; ${mult}.</p>
+      <div class="scale" aria-hidden="true">
+        <div class="track">
+          <div class="band" style="left:${pos(hit.lo)}%;width:${Math.max(1.2,pos(hit.hi)-pos(hit.lo))}%"></div>
+          <div class="thr" style="left:${pos(THRESHOLD)}%"><i>40</i></div>
+          <div class="dot" style="left:${pos(hit.rate)}%"></div>
+        </div>
+        <div class="ticks"><span style="left:0">1</span><span style="left:${pos(10)}%">10</span><span style="left:${pos(100)}%">100</span><span style="left:100%">1,000</span></div>
+      </div>
+      <div class="meta"><span>Uncertainty range <b>${hit.lo}&ndash;${hit.hi}</b></span><span>Log scale</span></div>
+      ${hit.lo<=THRESHOLD&&THRESHOLD<=hit.hi?'<div class="warn">The uncertainty range spans 40 &mdash; this country sits close to the threshold, so treat the verdict as borderline.</div>':""}
+    </div>`;
+    countUp(out.querySelector(".n"),hit.rate);
   } else if(sugg&&sugg.length){
-    out.innerHTML=`<div class="sugg">Did you mean: ${sugg.map(d=>`<button>${d.country}</button>`).join("")}</div>`;
-    out.querySelectorAll("button").forEach(b=>b.onclick=()=>{q.value=b.textContent;render()});
-  } else if(q.value.trim()){ out.innerHTML=`<div class="meta">No matching country found.</div>`; }
-  else out.innerHTML="";
+    lastShown=null;
+    out.innerHTML=`<div class="sugg"><p>Did you mean&hellip;</p><div class="chips">${sugg.map(d=>`<button type="button" data-c="${esc(d.country)}">${esc(short(d.country))}</button>`).join("")}</div></div>`;
+    out.querySelectorAll("button").forEach(b=>b.onclick=()=>{q.value=b.dataset.c;render()});
+  } else { lastShown=null; out.innerHTML=q.value.trim()?`<p class="empty">No matching country found.</p>`:""; }
 }
+
 fetch("data.json").then(r=>r.json()).then(d=>{
   data=d; d.forEach(x=>byNorm[norm(x.country)]=x);
-  document.getElementById("asof").textContent="Latest year available: "+Math.max(...d.map(x=>x.year))+".";
+  document.getElementById("yr").textContent="· "+Math.max(...d.map(x=>x.year));
+  const chips=document.getElementById("chips");
+  ["India","Brazil","South Africa","Pakistan","United Kingdom of Great Britain and Northern Ireland"].forEach(c=>{
+    if(!byNorm[norm(c)]) return;
+    const b=document.createElement("button"); b.type="button"; b.textContent=c.startsWith("United Kingdom")?"UK":c;
+    b.onclick=()=>{q.value=c;lastShown=null;render()}; chips.appendChild(b);
+  });
   if(q.value) render();
-}).catch(()=>out.innerHTML='<div class="meta">Could not load data.</div>');
-q.addEventListener("input",render);
+}).catch(()=>out.innerHTML='<p class="empty">Could not load data.</p>');
+q.addEventListener("input",()=>{lastShown=null;render()});
+q.addEventListener("keydown",e=>{if(e.key==="Enter"){const b=out.querySelector(".sugg button");if(b)b.click();q.blur()}});
 </script>
 </body>
 </html>
