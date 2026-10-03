@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>TB Rate Check</title>
-<meta name="description" content="Is a country's estimated TB incidence above 40 per 100,000? Based on WHO estimates.">
+<meta name="description" content="Is a country's estimated TB incidence 40 per 100,000 or above (the UK Green Book BCG threshold)? Based on WHO estimates.">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Fraunces:ital,opsz,wght@0,9..144,300..800;1,9..144,300..800&display=swap" rel="stylesheet">
@@ -89,6 +89,7 @@ h1 b{font-weight:700;font-family:var(--mono);font-size:.8em;letter-spacing:-.04e
 .sugg{animation:rise .35s both}.sugg p{margin:0 0 4px;color:var(--mute);font-style:italic}
 .empty{color:var(--mute);font-style:italic}
 footer{margin-top:44px;padding-top:16px;border-top:1px solid var(--line);font:400 .72rem/1.6 var(--mono);color:var(--mute)}
+.ref{margin:14px 0 0}
 .credit{margin:14px 0 0;font:italic 400 .9rem/1.4 var(--serif);color:var(--ink)}
 footer a{color:var(--ink);text-underline-offset:3px}
 @keyframes rise{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:none}}
@@ -103,7 +104,7 @@ footer a{color:var(--ink);text-underline-offset:3px}
 <body>
 <main>
   <div class="kicker">WHO tuberculosis estimates <span id="yr"></span></div>
-  <h1>Is TB above <b>40</b> per 100,000 in&hellip;</h1>
+  <h1>Is TB <b>40</b> per 100,000 or above in&hellip;</h1>
   <div class="field">
     <input id="q" placeholder="type a country" autocomplete="off" autocapitalize="words" enterkeyhint="search" spellcheck="false" aria-label="Country">
     <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="10.5" cy="10.5" r="6.5"/><path d="M15.5 15.5 21 21"/></svg>
@@ -113,7 +114,10 @@ footer a{color:var(--ink);text-underline-offset:3px}
   <footer>
     Estimated new TB cases per 100,000 population per year. Source:
     <a href="https://worldhealthorg.shinyapps.io/tb_profiles/">WHO TB profiles</a> / Global TB Programme. Updated weekly.
-    The 40 threshold is compared against the central estimate.
+    The central estimate is compared against the threshold.
+    <p class="ref"><b>Threshold:</b> BCG is recommended for those with links to a country where annual TB incidence is 40/100,000 or greater. Source:
+    <a href="https://assets.publishing.service.gov.uk/media/5b645a2140f0b66875559e93/_Greenbook_chapter_32_Tuberculosis_.pdf">Immunisation against infectious disease (the Green Book), Chapter 32: Tuberculosis</a>, Public Health England, August 2018.
+    This tool supports, and does not replace, clinical judgement and current guidance.</p>
     <p class="credit">Created by Dr Hammad Khan with the help of Dr Juno Stahl and Dr Katie Evans</p>
   </footer>
 </main>
@@ -153,10 +157,10 @@ function render(){
   const {hit,sugg}=find(q.value);
   if(hit){
     if(lastShown===hit.country) return; lastShown=hit.country;
-    const yes=hit.rate>THRESHOLD, ratio=hit.rate/THRESHOLD;
-    const mult = yes ? `<strong>${ratio>=10?Math.round(ratio):ratio.toFixed(1)}&times;</strong> the threshold` : `<strong>${(THRESHOLD/hit.rate>=10?Math.round(THRESHOLD/hit.rate):(THRESHOLD/hit.rate).toFixed(1))}&times;</strong> below the threshold`;
+    const yes=hit.rate>=THRESHOLD, ratio=hit.rate/THRESHOLD;
+    const mult = hit.rate===THRESHOLD ? `<strong>exactly at</strong> the threshold` : yes ? `<strong>${ratio>=10?Math.round(ratio):ratio.toFixed(1)}&times;</strong> the threshold` : `<strong>${(THRESHOLD/hit.rate>=10?Math.round(THRESHOLD/hit.rate):(THRESHOLD/hit.rate).toFixed(1))}&times;</strong> below the threshold`;
     out.innerHTML=`<div class="card ${yes?"yes":"no"}">
-      <div class="stamp">${yes?"Above 40":"Not above 40"}</div>
+      <div class="stamp">${yes?"40 or above":"Below 40"}</div>
       <p class="country">${esc(hit.country.replace(" of Great Britain and Northern Ireland",""))} &middot; ${hit.year}</p>
       <div class="big"><span class="n">0</span><span class="u">per 100,000</span></div>
       <p class="verdict">${yes?"Yes":"No"} &mdash; ${mult}.</p>
