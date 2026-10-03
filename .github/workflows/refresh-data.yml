@@ -30,7 +30,7 @@ jobs:
           git config user.name "github-actions"; git config user.email "actions@github.com"
           git add data.json; git diff --cached --quiet || (git commit -m "Refresh WHO TB data" && git push)
       - name: Assemble site
-        run: mkdir _site && cp index.html data.json og-image.png _site/
+        run: mkdir _site && cp index.html data.json og-image.png favicon.svg favicon-32.png apple-touch-icon.png _site/
       - uses: actions/configure-pages@v5
       - uses: actions/upload-pages-artifact@v3
         with:
