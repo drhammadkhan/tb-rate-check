@@ -34,6 +34,8 @@ body::before{ /* paper grain */
 }
 @media(prefers-color-scheme:dark){body::before{mix-blend-mode:screen;opacity:.12}}
 main{position:relative;max-width:640px;margin:0 auto;padding:44px 22px 40px}
+.brand{font:500 1.05rem/1.2 var(--serif);letter-spacing:.01em;margin:0 0 26px;padding-bottom:12px;border-bottom:1px solid var(--line);display:flex;align-items:center;gap:10px}
+.brand::before{content:"";width:9px;height:9px;border-radius:50%;background:var(--hot);flex:none}
 .kicker{font:500 .72rem/1 var(--mono);letter-spacing:.14em;text-transform:uppercase;color:var(--mute);display:flex;align-items:center;gap:10px}
 .kicker::before{content:"";width:28px;height:1px;background:var(--mute)}
 h1{font-weight:400;font-size:clamp(2rem,7.5vw,3.1rem);line-height:1.08;letter-spacing:-.02em;margin:18px 0 6px;font-variation-settings:"opsz" 144}
@@ -106,6 +108,7 @@ footer a{color:var(--ink);text-underline-offset:3px}
 </head>
 <body>
 <main>
+  <div class="brand">Evelina Neonatal data group BCG tool</div>
   <div class="kicker">WHO tuberculosis estimates <span id="yr"></span></div>
   <h1>Is TB <b>40</b> per 100,000 or above in&hellip;</h1>
   <div class="field">
