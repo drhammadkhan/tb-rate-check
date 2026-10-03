@@ -1,0 +1,87 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>TB Rate Check</title>
+<meta name="description" content="Is a country's estimated TB incidence above 40 per 100,000? Based on WHO estimates.">
+<style>
+:root{--bg:#f7f7f5;--card:#fff;--fg:#1d1d1b;--mute:#6b6b66;--line:#e2e2dc;--yes:#b3261e;--yesbg:#fdecea;--no:#1b6e3c;--nobg:#e8f5ec;--warn:#8a5a00}
+@media(prefers-color-scheme:dark){:root{--bg:#161614;--card:#201f1d;--fg:#f0efe9;--mute:#9a9992;--line:#35342f;--yes:#ff9a92;--yesbg:#3a1f1d;--no:#8fd5a6;--nobg:#1b2e22;--warn:#e6b450}}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--fg);font:16px/1.5 system-ui,sans-serif;display:flex;justify-content:center;padding:32px 16px}
+main{width:100%;max-width:520px}
+h1{font-size:1.6rem;margin:0 0 4px}
+p.sub{color:var(--mute);margin:0 0 20px}
+input{width:100%;font:inherit;padding:14px;border:1px solid var(--line);border-radius:10px;background:var(--card);color:var(--fg)}
+input:focus{outline:2px solid var(--fg);outline-offset:1px}
+#out{margin-top:20px}
+.card{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:20px}
+.verdict{display:inline-block;font-weight:700;padding:4px 12px;border-radius:999px;font-size:.95rem}
+.yes{background:var(--yesbg);color:var(--yes)}.no{background:var(--nobg);color:var(--no)}
+.rate{font-size:2.4rem;font-weight:700;margin:10px 0 0;line-height:1.1}
+.rate small{font-size:1rem;font-weight:400;color:var(--mute)}
+.meta{color:var(--mute);font-size:.9rem;margin-top:8px}
+.warn{color:var(--warn);font-size:.9rem;margin-top:10px}
+.bar{position:relative;height:8px;background:var(--line);border-radius:4px;margin:18px 0 6px}
+.bar i{position:absolute;top:0;bottom:0;border-radius:4px;background:var(--mute);opacity:.5}
+.bar b{position:absolute;top:-4px;width:3px;height:16px;background:var(--fg);border-radius:2px}
+.bar u{position:absolute;top:-8px;bottom:-8px;width:0;border-left:2px dashed var(--yes)}
+.sugg button{font:inherit;margin:4px 6px 0 0;padding:6px 12px;border:1px solid var(--line);background:var(--card);color:var(--fg);border-radius:999px;cursor:pointer}
+footer{margin-top:28px;color:var(--mute);font-size:.8rem}
+a{color:inherit}
+</style>
+</head>
+<body>
+<main>
+  <h1>TB Rate Check</h1>
+  <p class="sub">Is a country's estimated TB incidence above 40 per 100,000?</p>
+  <input id="q" list="countries" placeholder="Type a country, e.g. India" autocomplete="off" autofocus aria-label="Country">
+  <datalist id="countries"></datalist>
+  <div id="out" aria-live="polite"></div>
+  <footer>Data: <a href="https://worldhealthorg.shinyapps.io/tb_profiles/">WHO TB profiles</a> / WHO Global TB Programme estimates of new cases per 100,000 population per year. <span id="asof"></span></footer>
+</main>
+<script>
+const THRESHOLD = 40;
+const ALIASES = {"uk":"United Kingdom of Great Britain and Northern Ireland","united kingdom":"United Kingdom of Great Britain and Northern Ireland","britain":"United Kingdom of Great Britain and Northern Ireland","great britain":"United Kingdom of Great Britain and Northern Ireland","england":"United Kingdom of Great Britain and Northern Ireland","scotland":"United Kingdom of Great Britain and Northern Ireland","wales":"United Kingdom of Great Britain and Northern Ireland","usa":"United States of America","us":"United States of America","america":"United States of America","united states":"United States of America","russia":"Russian Federation","iran":"Iran (Islamic Republic of)","south korea":"Republic of Korea","korea":"Republic of Korea","north korea":"Democratic People's Republic of Korea","vietnam":"Viet Nam","laos":"Lao People's Democratic Republic","syria":"Syrian Arab Republic","tanzania":"United Republic of Tanzania","bolivia":"Bolivia (Plurinational State of)","venezuela":"Venezuela (Bolivarian Republic of)","moldova":"Republic of Moldova","turkey":"Türkiye","turkiye":"Türkiye","drc":"Democratic Republic of the Congo","dr congo":"Democratic Republic of the Congo","ivory coast":"Côte d'Ivoire","cote d'ivoire":"Côte d'Ivoire","czech republic":"Czechia","uae":"United Arab Emirates","burma":"Myanmar","swaziland":"Eswatini","cape verde":"Cabo Verde","east timor":"Timor-Leste","palestine":"occupied Palestinian territory, including east Jerusalem","macedonia":"North Macedonia"};
+const norm = s => s.toLowerCase().normalize("NFD").replace(/[̀-ͯ]/g,"").replace(/[^a-z0-9' ]+/g," ").replace(/\s+/g," ").trim();
+const lev = (a,b)=>{const m=[...Array(a.length+1)].map((_,i)=>[i,...Array(b.length).fill(0)]);for(let j=1;j<=b.length;j++)m[0][j]=j;for(let i=1;i<=a.length;i++)for(let j=1;j<=b.length;j++)m[i][j]=Math.min(m[i-1][j]+1,m[i][j-1]+1,m[i-1][j-1]+(a[i-1]===b[j-1]?0:1));return m[a.length][b.length]};
+let data=[], byNorm={};
+const q=document.getElementById("q"), out=document.getElementById("out");
+
+function find(text){
+  const n=norm(text); if(!n) return {};
+  if(byNorm[n]) return {hit:byNorm[n]};
+  const al=ALIASES[n]; if(al&&data.find(d=>d.country===al)) return {hit:data.find(d=>d.country===al)};
+  const subs=data.filter(d=>norm(d.country).includes(n));
+  if(subs.length===1) return {hit:subs[0]};
+  const scored=data.map(d=>({d,s:lev(n,norm(d.country))/Math.max(n.length,3)})).sort((a,b)=>a.s-b.s);
+  const close=scored.filter(x=>x.s<.45).slice(0,3).map(x=>x.d);
+  if(close.length===1&&scored[0].s<.2) return {hit:close[0]};
+  return {sugg:subs.length?subs.slice(0,5):close};
+}
+function render(){
+  const {hit,sugg}=find(q.value);
+  if(hit){
+    const yes=hit.rate>THRESHOLD, max=Math.max(hit.hi,THRESHOLD)*1.15, pct=v=>(v/max*100)+"%";
+    out.innerHTML=`<div class="card"><span class="verdict ${yes?"yes":"no"}">${yes?"YES - above 40":"NO - not above 40"}</span>
+      <div class="rate">${hit.rate} <small>per 100,000</small></div>
+      <div class="bar"><i style="left:${pct(hit.lo)};width:${(hit.hi-hit.lo)/max*100}%"></i><b style="left:calc(${pct(hit.rate)} - 1px)"></b><u style="left:${pct(THRESHOLD)}"></u></div>
+      <div class="meta">${hit.country}, ${hit.year}. Uncertainty range ${hit.lo}-${hit.hi}. Dashed line = 40.</div>
+      ${hit.lo<=THRESHOLD&&THRESHOLD<=hit.hi?'<div class="warn">The uncertainty range spans 40, so this country is close to the threshold.</div>':""}</div>`;
+  } else if(sugg&&sugg.length){
+    out.innerHTML=`<div class="sugg">Did you mean: ${sugg.map(d=>`<button>${d.country}</button>`).join("")}</div>`;
+    out.querySelectorAll("button").forEach(b=>b.onclick=()=>{q.value=b.textContent;render()});
+  } else if(q.value.trim()){ out.innerHTML=`<div class="meta">No matching country found.</div>`; }
+  else out.innerHTML="";
+}
+fetch("data.json").then(r=>r.json()).then(d=>{
+  data=d; d.forEach(x=>byNorm[norm(x.country)]=x);
+  document.getElementById("countries").innerHTML=d.map(x=>`<option value="${x.country.replace(/"/g,"&quot;")}">`).join("");
+  document.getElementById("asof").textContent="Latest year available: "+Math.max(...d.map(x=>x.year))+".";
+  if(q.value) render();
+}).catch(()=>out.innerHTML='<div class="meta">Could not load data.</div>');
+q.addEventListener("input",render);
+</script>
+</body>
+</html>
