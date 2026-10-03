@@ -95,7 +95,8 @@ footer a{color:var(--ink);text-underline-offset:3px}
 @keyframes pop{from{opacity:0;transform:scale(0)}to{opacity:1;transform:scale(1)}}
 @keyframes stamp{from{opacity:0;transform:rotate(-8deg) scale(1.8)}to{opacity:1;transform:rotate(3deg) scale(1)}}
 @media(prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
-@media(max-width:420px){.stamp{position:static;display:inline-block;margin-bottom:12px}}
+.country{padding-right:150px}
+@media(max-width:600px){.stamp{position:static;display:inline-block;margin-bottom:14px;transform:rotate(-2deg)}.country{padding-right:0}}
 </style>
 </head>
 <body>
@@ -154,7 +155,7 @@ function render(){
     const mult = yes ? `<strong>${ratio>=10?Math.round(ratio):ratio.toFixed(1)}&times;</strong> the threshold` : `<strong>${(THRESHOLD/hit.rate>=10?Math.round(THRESHOLD/hit.rate):(THRESHOLD/hit.rate).toFixed(1))}&times;</strong> below the threshold`;
     out.innerHTML=`<div class="card ${yes?"yes":"no"}">
       <div class="stamp">${yes?"Above 40":"Not above 40"}</div>
-      <p class="country">${esc(hit.country)} &middot; ${hit.year}</p>
+      <p class="country">${esc(hit.country.replace(" of Great Britain and Northern Ireland",""))} &middot; ${hit.year}</p>
       <div class="big"><span class="n">0</span><span class="u">per 100,000</span></div>
       <p class="verdict">${yes?"Yes":"No"} &mdash; ${mult}.</p>
       <div class="scale" aria-hidden="true">
