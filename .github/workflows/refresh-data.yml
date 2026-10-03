@@ -1,15 +1,39 @@
-name: Refresh WHO data
+name: Refresh WHO data and deploy
 on:
-  schedule: [{cron: "0 6 * * 1"}]
+  push:
+    branches: [main]
+  schedule:
+    - cron: "0 6 * * 1"
   workflow_dispatch:
 permissions:
   contents: write
+  pages: write
+  id-token: write
+concurrency:
+  group: pages
+  cancel-in-progress: false
 jobs:
-  refresh:
+  deploy:
     runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
     steps:
       - uses: actions/checkout@v4
-      - run: python3 scripts/build_data.py
-      - run: |
+      # Pushes (site edits) deploy the committed data.json; schedule/manual runs fetch fresh WHO data first.
+      - name: Fetch WHO data
+        if: github.event_name != 'push'
+        run: python3 scripts/build_data.py
+      - name: Commit refreshed data
+        if: github.event_name != 'push'
+        run: |
           git config user.name "github-actions"; git config user.email "actions@github.com"
           git add data.json; git diff --cached --quiet || (git commit -m "Refresh WHO TB data" && git push)
+      - name: Assemble site
+        run: mkdir _site && cp index.html data.json _site/
+      - uses: actions/configure-pages@v5
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: _site
+      - id: deployment
+        uses: actions/deploy-pages@v4
