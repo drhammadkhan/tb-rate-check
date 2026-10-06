@@ -114,8 +114,9 @@ footer{margin-top:44px;padding-top:16px;border-top:1px solid var(--line);font:40
 details.more{margin-top:14px}
 details.more summary{cursor:pointer;font:500 .72rem var(--mono);letter-spacing:.12em;text-transform:uppercase;color:var(--mute);padding:6px 0;list-style:none;display:flex;align-items:center;gap:8px}
 details.more summary::-webkit-details-marker{display:none}
-details.more summary::before{content:"+";display:inline-block;width:16px;height:16px;line-height:14px;text-align:center;border:1px solid var(--mute);border-radius:50%}
-details.more[open] summary::before{content:"\2212"}
+details.more summary::before{content:"";flex:none;box-sizing:border-box;width:18px;height:18px;border:1px solid var(--mute);border-radius:50%;
+  background:linear-gradient(currentColor,currentColor) center/8px 1.5px no-repeat,linear-gradient(currentColor,currentColor) center/1.5px 8px no-repeat}
+details.more[open] summary::before{background:linear-gradient(currentColor,currentColor) center/8px 1.5px no-repeat}
 details.more summary:hover{color:var(--ink)}
 details.more summary{display:inline-flex;padding:6px 12px 6px 4px;border-radius:999px}
 details.more summary:focus{outline:none}
