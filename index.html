@@ -117,6 +117,9 @@ details.more summary::-webkit-details-marker{display:none}
 details.more summary::before{content:"+";display:inline-block;width:16px;height:16px;line-height:14px;text-align:center;border:1px solid var(--mute);border-radius:50%}
 details.more[open] summary::before{content:"\2212"}
 details.more summary:hover{color:var(--ink)}
+details.more summary{display:inline-flex;padding:6px 12px 6px 4px;border-radius:999px}
+details.more summary:focus{outline:none}
+details.more summary:focus-visible{outline:2px solid var(--hot);outline-offset:2px}
 .ref,.prov{margin:14px 0 0}.prov{margin-top:0}details.more p{margin:12px 0 0}
 footer code{font-size:.95em}
 .credit{margin:14px 0 0;font:italic 400 .9rem/1.4 var(--serif);color:var(--ink)}
