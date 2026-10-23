@@ -3,18 +3,18 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Evelina Neonatal data group BCG tool</title>
-<meta name="description" content="Evelina Neonatal data group tool: check whether a country's estimated TB incidence is 40 per 100,000 or above, the UK Green Book threshold for BCG vaccination. Based on WHO estimates.">
+<title>BCG tool | Evelina Neonatal Data Group</title>
+<meta name="description" content="Evelina Neonatal Data Group tool: check whether a country's estimated TB incidence is 40 per 100,000 or above, the UK Green Book threshold for BCG vaccination. Based on WHO estimates.">
 <meta property="og:type" content="website">
 <meta property="og:url" content="https://drhammadkhan.github.io/tb-rate-check/">
 <meta property="og:image" content="https://drhammadkhan.github.io/tb-rate-check/og-image.png">
 <meta property="og:image:width" content="1200">
 <meta property="og:image:height" content="630">
-<meta property="og:image:alt" content="Evelina Neonatal data group BCG tool: is a country's TB incidence 40 per 100,000 or above?">
+<meta property="og:image:alt" content="Evelina Neonatal Data Group BCG tool: is a country's TB incidence 40 per 100,000 or above?">
 <meta name="twitter:card" content="summary_large_image">
 <meta name="twitter:image" content="https://drhammadkhan.github.io/tb-rate-check/og-image.png">
-<meta property="og:title" content="Evelina Neonatal data group BCG tool">
-<meta property="og:description" content="Evelina Neonatal data group tool: check whether a country's estimated TB incidence is 40 per 100,000 or above, the UK Green Book threshold for BCG vaccination. Based on WHO estimates.">
+<meta property="og:title" content="BCG tool | Evelina Neonatal Data Group">
+<meta property="og:description" content="Evelina Neonatal Data Group tool: check whether a country's estimated TB incidence is 40 per 100,000 or above, the UK Green Book threshold for BCG vaccination. Based on WHO estimates.">
 <link rel="icon" href="favicon.svg" type="image/svg+xml">
 <link rel="icon" href="favicon-32.png" type="image/png" sizes="32x32">
 <link rel="apple-touch-icon" href="apple-touch-icon.png">
@@ -23,13 +23,15 @@
 <link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Fraunces:ital,opsz,wght@0,9..144,300..800;1,9..144,300..800&display=swap" rel="stylesheet">
 <style>
 :root{
-  --paper:#f3eee4; --paper2:#ebe4d6; --ink:#1b1814; --mute:#7a7266; --line:#d6cdbb;
-  --hot:#d63a1f; --hotbg:#f9ddd4; --cool:#1d5e57; --coolbg:#d9e8e2;
+  --paper:#f3eee4; --paper2:#ebe4d6; --ink:#1b1814; --mute:#675f54; --line:#d6cdbb;
+  --hot:#dd4027; --hot-ink:#b3301a; --hotbg:#f9ddd4; --cool:#1d5e57; --coolbg:#d9e8e2;
+  --amber:#c5a56e; --amber-ink:#7a5a12; --amberbg:#f3e7cb; --field:#fbf8f1;
   --serif:"Fraunces",Georgia,"Times New Roman",serif; --mono:"DM Mono",ui-monospace,Menlo,monospace;
 }
 @media(prefers-color-scheme:dark){:root{
   --paper:#15130f; --paper2:#1d1a15; --ink:#f1ebdd; --mute:#9b9384; --line:#363126;
-  --hot:#ff7a5c; --hotbg:#3a1c14; --cool:#6fd0c2; --coolbg:#13302c;
+  --hot:#ff7a5c; --hot-ink:#ff7a5c; --hotbg:#3a1c14; --cool:#6fd0c2; --coolbg:#13302c;
+  --amber:#e0b866; --amber-ink:#e0b866; --amberbg:#33290f; --field:#110f0c;
 }}
 *{box-sizing:border-box}
 html{-webkit-text-size-adjust:100%}
@@ -47,7 +49,8 @@ body::before{ /* paper grain */
 }
 @media(prefers-color-scheme:dark){body::before{mix-blend-mode:screen;opacity:.12}}
 main{position:relative;max-width:640px;margin:0 auto;padding:44px 22px 40px}
-.brand{font:500 1.05rem/1.2 var(--serif);letter-spacing:.01em;margin:0 0 26px;padding-bottom:12px;border-bottom:1px solid var(--line);display:flex;align-items:center;gap:10px}
+.brand{font:500 1.05rem/1.2 var(--serif);letter-spacing:.01em;margin:0 0 26px;padding-bottom:12px;border-bottom:1px solid var(--line);display:flex;align-items:center;gap:10px;color:var(--ink);text-decoration:none}
+a.brand:hover span{text-decoration:underline;text-underline-offset:4px}
 .brand::before{content:"";width:9px;height:9px;border-radius:50%;background:var(--hot);flex:none}
 .kicker{font:500 .72rem/1 var(--mono);letter-spacing:.14em;text-transform:uppercase;color:var(--mute);display:flex;align-items:center;gap:10px}
 .kicker::before{content:"";width:28px;height:1px;background:var(--mute)}
@@ -77,11 +80,11 @@ h1 b{font-weight:700;font-family:var(--mono);font-size:.8em;letter-spacing:-.04e
   animation:rise .5s cubic-bezier(.2,.8,.2,1) both;
 }
 .card::after{content:"";position:absolute;left:0;top:0;bottom:0;width:5px;background:var(--accent)}
-.card.yes{--accent:var(--hot)} .card.no{--accent:var(--cool)}
+.card.yes{--accent:var(--hot);--accent-ink:var(--hot-ink)} .card.no{--accent:var(--cool);--accent-ink:var(--cool)}
 .country{font:500 .75rem var(--mono);letter-spacing:.12em;text-transform:uppercase;color:var(--mute);margin:0 0 4px;animation:rise .5s .05s both}
 .stamp{
   position:absolute;top:18px;right:18px;font:500 .72rem var(--mono);letter-spacing:.14em;text-transform:uppercase;
-  color:var(--accent);border:2px solid var(--accent);border-radius:3px;padding:6px 10px;transform:rotate(3deg);
+  color:var(--accent-ink);border:2px solid var(--accent);border-radius:3px;padding:6px 10px;transform:rotate(3deg);
   animation:stamp .45s .25s cubic-bezier(.3,1.6,.5,1) both;
 }
 .big{display:flex;align-items:baseline;gap:10px;flex-wrap:wrap;margin:6px 0 2px;animation:rise .5s .1s both}
@@ -100,7 +103,7 @@ h1 b{font-weight:700;font-family:var(--mono);font-size:.8em;letter-spacing:-.04e
 .ticks span:first-child{transform:none}.ticks span:last-child{transform:translateX(-100%)}
 .meta{margin-top:18px;padding-top:14px;border-top:1px dashed var(--line);display:flex;flex-wrap:wrap;gap:6px 22px;font:400 .78rem/1.4 var(--mono);color:var(--mute);animation:rise .5s .3s both}
 .meta b{color:var(--ink);font-weight:500}
-.card.none{--accent:var(--mute)}.meta2{margin:8px 0 0;color:var(--mute)}
+.card.none{--accent:var(--mute);--accent-ink:var(--mute)}.meta2{margin:8px 0 0;color:var(--mute)}
 .ovf{position:absolute;top:50%;transform:translateY(-50%);font-size:.6rem;color:var(--accent)}.ovf.l{left:-14px}.ovf.r{right:-14px}
 .dot.hollow{background:var(--paper2)}
 .warn{margin-top:14px;padding:10px 12px;background:var(--hotbg);border-left:3px solid var(--hot);font:400 .85rem/1.45 var(--serif);animation:rise .5s .35s both}
@@ -136,8 +139,8 @@ footer a{color:var(--ink);text-underline-offset:3px}
 </head>
 <body>
 <main>
-  <div class="brand">Evelina Neonatal data group BCG tool</div>
-  <div class="kicker">WHO tuberculosis estimates <span id="yr"></span></div>
+  <a class="brand" href="https://drhammadkhan.github.io/evelina-neonatal-data-group/"><span>Evelina Neonatal Data Group</span></a>
+  <div class="kicker">BCG tool &middot; WHO estimates <span id="yr"></span></div>
   <h1>Is TB <b>40</b> per 100,000 or above in&hellip;</h1>
   <div class="field">
     <input id="q" placeholder="type a country" autocomplete="off" autocapitalize="words" enterkeyhint="search" spellcheck="false" aria-label="Country">
@@ -156,7 +159,7 @@ footer a{color:var(--ink);text-underline-offset:3px}
     This site checks WHO&rsquo;s download weekly; WHO publishes new estimates annually and may revise earlier years.
     Sources: <a href="https://www.who.int/teams/global-tuberculosis-programme/data">WHO TB data</a> &middot; <a href="https://worldhealthorg.shinyapps.io/tb_profiles/">WHO TB profiles</a>.</p>
     </details>
-    <p class="credit">Created by Dr Hammad Khan with the help of Dr Juno Stahl and Dr Katie Evans</p>
+    <p class="credit">A tool from the <a href="https://drhammadkhan.github.io/evelina-neonatal-data-group/">Evelina Neonatal Data Group</a>.<br>Created by Dr Hammad Khan with the help of Dr Juno Stahl and Dr Katie Evans</p>
   </footer>
 </main>
 <script>
